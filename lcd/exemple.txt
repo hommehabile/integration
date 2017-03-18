@@ -1,0 +1,3 @@
+http://www.microchip.com/forums/m830183.aspx
+
+http://playground.arduino.cc/Code/LCD12864
