@@ -1,0 +1,14 @@
+https://www.codeproject.com/articles/15187/concatenating-wave-files-using-c
+
+
+http://www.avrfreaks.net/forum/how-decode-wav-files
+
+
+http://www.electronicshub.org/modulation-and-different-types-of-modulation/
+
+
+http://avrpcm.blogspot.ca/2010/11/playing-8-bit-pcm-using-any-avr.html
+
+
+http://audio.online-convert.com/convert-to-wav
+head First_One_Prod.wav -c 24K | xxd -i > fk.me
