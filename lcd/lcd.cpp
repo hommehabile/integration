@@ -1,34 +1,23 @@
 #include "lcd.h"
 
-Lcd::Lcd() {
+Lcd::Lcd(uint8_t mode) {
+	mode_ = mode;
     initialisation();
-}
-
-int Lcd::testing() {
-    char message[] =  "AAAA";
-    uint8_t size = sizeof(message)/sizeof(*message);
-    //writeString(message, size);  // Calling a function to send a String of characters, as defined in 'message' string.
-                                    // In Extended mode there are four line to print your text. Each line is 16characters long.
-                                    // Line 1 starts at 0x80 , line 2 starts at 0x90, line 3 starts at 0x88, line 4 starts at 0x99.
-    
-    clearGraphics();
-    
-    //standby();
-    
-    return 0;
 }
 
 void Lcd::initialisation() {
     //initialisation des ports
-    DDRA = 0xff;
-	DDRB = 0xff;
-    PORTA = 0x00;
-    PORTB = 0x00;
+    if(mode_ == LCD_8BITS_PARALLEL_MODE) {
+    	LCD_BUS_DIRECTION_REGISTER = 0xff;
+    	LCD_CONTROL_DIRECTION_REGISTER |= 0x0f;
+    	LCD_BUS_OUT = 0x00;
+    	LCD_CONTROL_BUS_OUT = 0x08;
+    } else {
+    	LCD_CONTROL_DIRECTION_REGISTER |= 0x0f;
+    	LCD_CONTROL_BUS_OUT = 0x0c;
+    }
     
     //initialisation de l'ecran
-    EN(0);
-    RW(0);
-    RS(0);
     RST(0);                             // Resets the display
     _delay_ms(100);
     RST(1);
@@ -37,10 +26,7 @@ void Lcd::initialisation() {
     _delay_us(DELAY_US);
     sendCommand(CMD_8BITS_INTERFACE);   // 8-bit mode again.
     _delay_us(DELAY_US);
-    setBasicGraphicControl(1, 0, 0);         // Display on
-    _delay_us(DELAY_US);
-    sendCommand(CMD_CLEAR_DISPLAY);     // Clears screen.
-    _delay_ms(DELAY_MS);
+    clearBasicGraphics();
     sendCommand(CMD_ENTRY_MODE_RIGHT);  // Cursor moves right, no display shift.
     _delay_us(DELAY_US);
     sendCommand(CMD_RETURN_HOME);       // Returns to home. Cursor moves to starting point.
@@ -48,89 +34,129 @@ void Lcd::initialisation() {
 }
 
 void Lcd::writeString(char string[], uint8_t size) {
-    setBusDirection(BUS_OUT);
-    RS(0);
-    RW(0);
-    sendCommand(CMD_BASIC_INSTRUCTION);
-    _delay_us(DELAY_US);
-    for(uint8_t i=0; i<32; i++) {
-        //if(string[i] == 'A')
-        sendData(i);
+    returnHome(); //on revient a la premiere ligne
+    uint8_t tempSize = size;
+    for(uint8_t i=0; i<tempSize && i<16; i++) {
+        sendData(*string++);
+    }
+    if(tempSize > 16) {
+    	tempSize -= 16;
+    	setDDRAMaddress(0x90); //deuxieme ligne
+    	for(uint8_t i=0; i<tempSize && i<16; i++) {
+	        sendData(*string++);
+	    }
+	    if(tempSize > 16) {
+	    	tempSize -= 16;
+	    	setDDRAMaddress(0x88); //troisieme ligne
+	    	for(uint8_t i=0; i<tempSize && i<16; i++) {
+		        sendData(*string++);
+		    }
+		    if(tempSize > 16) {
+		    	setDDRAMaddress(0x98); //quatrieme ligne
+		    	for(uint8_t i=0; i<tempSize && i<16; i++) {
+			        sendData(*string++);
+			    }
+		    }
+	    }
     }
 }
 
 void Lcd::sendCommand(uint8_t command) {
-    setBusDirection(BUS_OUT);
-    RW(0);
-    RS(0);
-    _delay_ms(DELAY_MS);
-    LCD_BUS_OUT = command;
-    EN(1);
-    _delay_ms(DELAY_MS);
-    EN(0);
+	setBusDirection(BUS_OUT);
+	if(mode_ == LCD_8BITS_PARALLEL_MODE) {
+	    RW(0);
+	    RS(0);
+	    _delay_ms(DELAY_MS);
+	    LCD_BUS_OUT = command;
+	    EN(1);
+	    _delay_ms(DELAY_MS);
+	    EN(0);
+	}
+	else {
+		transmitSerial(0, 0, command);
+	}
 }
 
 void Lcd::sendData(uint8_t data) {
-    setBusDirection(BUS_OUT);
-    RS(1);
-    RW(0);
-    _delay_ms(DELAY_MS);
-    LCD_BUS_OUT = data;
-    EN(1);
-    _delay_ms(DELAY_MS);
-    EN(0);
+	setBusDirection(BUS_OUT);
+	if(mode_ == LCD_8BITS_PARALLEL_MODE) {
+	    RW(0);
+	    RS(1);
+	    _delay_ms(DELAY_MS);
+	    LCD_BUS_OUT = data;
+	    EN(1);
+	    _delay_ms(DELAY_MS);
+	    EN(0);
+	}
+	else {
+		transmitSerial(0, 1, data);
+	}
 }
 
 uint8_t Lcd::readData() {
-    setBusDirection(BUS_IN);
-    RS(1);
-    RW(1);
-    EN(1);
-    _delay_ms(DELAY_MS);
-    uint8_t data = LCD_BUS_IN;
-    _delay_ms(DELAY_MS);
-    EN(0);
-    return data;
+	setBusDirection(BUS_IN);
+	uint8_t data;
+	if(mode_ == LCD_8BITS_PARALLEL_MODE) {
+	    RW(1);
+	    RS(1);
+	    EN(1);
+	    _delay_ms(DELAY_MS);
+	    data = LCD_BUS_IN;
+	    _delay_ms(DELAY_MS);
+	    EN(0);
+	    
+	}
+	else {
+		data = receiveSerial();
+	}
+	return data;
 }
 
 uint8_t Lcd::readAddressCounter() {
-    setBusDirection(BUS_IN);
-    RS(0);
-    RW(1);
-    EN(1);
-    _delay_ms(DELAY_MS);
-    uint8_t ad = LCD_BUS_IN;
-    _delay_ms(DELAY_MS);
-    EN(0);
-    return ad & 0x7f;
+	setBusDirection(BUS_IN);
+	uint8_t ad;
+	if(mode_ == LCD_8BITS_PARALLEL_MODE) {
+	    RW(1);
+	    RS(0);
+	    EN(1);
+	    _delay_ms(DELAY_MS);
+	    ad = LCD_BUS_IN;
+	    _delay_ms(DELAY_MS);
+	    EN(0);
+	}
+	else {
+		ad = receiveSerial();
+	}
+	return ad & 0x7f;
 }
 
 uint8_t Lcd::readBusyFlag() {
-    setBusDirection(BUS_IN);
-    RS(0);
-    RW(1);
-    EN(1);
-    _delay_ms(DELAY_MS);
-    uint8_t bf = LCD_BUS_IN;
-    _delay_ms(DELAY_MS);
-    EN(0);
-    return bf >> 7;
+	setBusDirection(BUS_IN);
+	uint8_t bf;
+	if(mode_ == LCD_8BITS_PARALLEL_MODE) {
+	    RW(1);
+	    RS(0);
+	    EN(1);
+	    _delay_ms(DELAY_MS);
+	    bf = LCD_BUS_IN;
+	    _delay_ms(DELAY_MS);
+	    EN(0);
+	    
+	}
+	else {
+		bf = receiveSerial();
+	}
+	return bf >> 7;
 }
 
-void Lcd::setBasicGraphicControl(uint8_t display, uint8_t cursor, uint8_t blink) {
-    setBusDirection(BUS_OUT);
-    RS(0);
-    RW(0);
+void Lcd::setBasicGraphics(uint8_t display, uint8_t cursor, uint8_t blink) {
     sendCommand(CMD_BASIC_INSTRUCTION);
     _delay_us(DELAY_US);
     sendCommand(CMD_BASIC_DISPLAY_CONTROL | (display << 2) | (cursor << 1) | (blink << 0));
     _delay_us(DELAY_US);
 }
 
-void Lcd::setExtendedGraphicControl(uint8_t display) {
-    setBusDirection(BUS_OUT);
-    RS(0);
-    RW(0);
+void Lcd::setExtendedGraphics(uint8_t display) {
     sendCommand(CMD_EXTENDED_INSTRUCTION);
     _delay_us(DELAY_US);
     sendCommand(CMD_EXTENDED_DISPLAY_CONTROL | (display << 1));
@@ -144,9 +170,6 @@ void Lcd::setGDRAMaddress(uint8_t x, uint8_t y) {
         x += 8;
     }
     //setting the address
-    setBusDirection(BUS_OUT);
-    RS(0);
-    RW(0);
     sendCommand(CMD_EXTENDED_INSTRUCTION);
     _delay_us(DELAY_US);
     sendCommand(CMD_SET_GDRAM_ADDRESS | y);
@@ -156,9 +179,6 @@ void Lcd::setGDRAMaddress(uint8_t x, uint8_t y) {
 }
 
 void Lcd::setDDRAMaddress(uint8_t address) {
-    setBusDirection(BUS_OUT);
-    RS(0);
-    RW(0);
     sendCommand(CMD_BASIC_INSTRUCTION);
     _delay_us(DELAY_US);
     sendCommand(CMD_SET_DDRAM_ADDRESS | address);
@@ -166,9 +186,6 @@ void Lcd::setDDRAMaddress(uint8_t address) {
 }
 
 void Lcd::standby() {
-    setBusDirection(BUS_OUT);
-    RS(0);
-    RW(0);
     sendCommand(CMD_EXTENDED_INSTRUCTION);
     _delay_us(DELAY_US);
     sendCommand(CMD_STANDBY);
@@ -176,19 +193,18 @@ void Lcd::standby() {
 }
 
 void Lcd::returnHome() {
-    setBusDirection(BUS_OUT);
-    RS(0);
-    RW(0);
     sendCommand(CMD_BASIC_INSTRUCTION);
     _delay_us(DELAY_US);
     sendCommand(CMD_RETURN_HOME);
     _delay_us(DELAY_US);
 }
 
-void Lcd::clearGraphics() {
-    setBusDirection(BUS_OUT);
-    RS(0);
-    RW(0);
+void Lcd::clearBasicGraphics() {
+	sendCommand(CMD_CLEAR_DISPLAY);
+	_delay_us(DELAY_US);
+}
+
+void Lcd::clearExtendedGraphics() {
     unsigned char x, y;
     for(y = 0; y < 64; y++) {
         setGDRAMaddress(x, y);
@@ -200,9 +216,6 @@ void Lcd::clearGraphics() {
 }
 
 void Lcd::setPixel(uint8_t x, uint8_t y) {
-	setBusDirection(BUS_OUT);
-    RS(0);
-    RW(0);
     sendCommand(CMD_EXTENDED_INSTRUCTION);
 
     uint8_t modulo = x % 16; //position in the register
@@ -223,9 +236,6 @@ void Lcd::setPixel(uint8_t x, uint8_t y) {
 }
 
 void Lcd::clearPixel(uint8_t x, uint8_t y) {
-    setBusDirection(BUS_OUT);
-    RS(0);
-    RW(0);
     sendCommand(CMD_EXTENDED_INSTRUCTION);
 
     uint8_t modulo = x % 16; //position in the register
@@ -246,9 +256,6 @@ void Lcd::clearPixel(uint8_t x, uint8_t y) {
 }
 
 void Lcd::setPixels(uint8_t x, uint8_t y, uint16_t data) {
-    setBusDirection(BUS_OUT);
-    RS(0);
-    RW(0);
     sendCommand(CMD_EXTENDED_INSTRUCTION);
 
     uint8_t modulo = x % 16; //position in the register
@@ -270,8 +277,125 @@ void Lcd::drawRectangle(uint8_t x, uint8_t y, uint8_t largeur, uint8_t hauteur) 
 }
 
 void Lcd::setBusDirection(uint8_t direction) {
-    if(direction == BUS_IN)
-        LCD_BUS_DIRECTION_REGISTER = 0x00;
-    else if(direction == BUS_OUT)
-        LCD_BUS_DIRECTION_REGISTER = 0xff;
+    if(mode_ == LCD_8BITS_PARALLEL_MODE) {
+    	if(direction == BUS_IN)
+	        LCD_BUS_DIRECTION_REGISTER = 0x00;
+	    else if(direction == BUS_OUT)
+	        LCD_BUS_DIRECTION_REGISTER = 0xff;
+    }
+	else {
+		if(direction == BUS_IN)
+	        LCD_CONTROL_DIRECTION_REGISTER &= 0xfd;
+	    else if(direction == BUS_OUT)
+	        LCD_CONTROL_DIRECTION_REGISTER |= 0x02;
+	}
+}
+
+void Lcd::transmitSerial(uint8_t rw, uint8_t rs, uint8_t data) {
+	uint8_t i;
+	SID(1);
+	for(i=0; i<5; i++) { //synchronizing bit string
+		SCLK(1);
+		_delay_us(DELAY_CLK);
+		SCLK(0);
+		_delay_us(DELAY_CLK);
+	}
+	SID(rw); //RW
+	SCLK(1);
+	_delay_us(DELAY_CLK);
+	SCLK(0);
+	_delay_us(DELAY_CLK);
+	SID(rs); //RS
+	SCLK(1);
+	_delay_us(DELAY_CLK);
+	SCLK(0);
+	_delay_us(DELAY_CLK);
+	/*
+	SID(0);
+	SCLK(1);
+	_delay_us(DELAY_CLK);
+	SCLK(0);
+	_delay_us(DELAY_CLK);///////////////0, 1, 4 fois???
+	*/
+	for(i=0; i<4; i++) {
+		SID(((data >> (7-i)) & 0x01));
+		SCLK(1);
+		_delay_us(DELAY_CLK);
+		SCLK(0);
+		_delay_us(DELAY_CLK);
+	}
+	SID(0);
+	for(i=0; i<4; i++) {
+		SCLK(1);
+		_delay_us(DELAY_CLK);
+		SCLK(0);
+		_delay_us(DELAY_CLK);
+	}
+	for(i=0; i<4; i++) {
+		SID(((data >> (3-i)) & 0x01));
+		SCLK(1);
+		_delay_us(DELAY_CLK);
+		SCLK(0);
+		_delay_us(DELAY_CLK);
+	}
+	SID(0);
+	for(i=0; i<4; i++) {
+		SCLK(1);
+		_delay_us(DELAY_CLK);
+		SCLK(0);
+		_delay_us(DELAY_CLK);
+	}
+}
+
+uint8_t Lcd::receiveSerial() {
+	uint8_t i;
+	SID(1);
+	for(i=0; i<5; i++) { //synchronizing bit string
+		SCLK(1);
+		_delay_us(DELAY_CLK);
+		SCLK(0);
+		_delay_us(DELAY_CLK);
+	}
+	SID(1); //RW
+	SCLK(1);
+	_delay_us(DELAY_CLK);
+	SCLK(0);
+	_delay_us(DELAY_CLK);
+	SID(1); //RS
+	SCLK(1);
+	_delay_us(DELAY_CLK);
+	SCLK(0);
+	_delay_us(DELAY_CLK);
+
+	//reception
+	uint8_t data = 0x00;
+	for(i=0; i<4; i++) {
+		SCLK(1);
+		_delay_us(DELAY_CLK);
+		data |= ((LCD_CONTROL_BUS_IN >> 0x01) & 1) << (7-i); //0x02 car SID est PD1
+		SCLK(0);
+		_delay_us(DELAY_CLK);
+	}
+	for(i=0; i<4; i++) {
+		SCLK(1);
+		_delay_us(DELAY_CLK);
+		//dummy read
+		SCLK(0);
+		_delay_us(DELAY_CLK);
+	}
+	for(i=0; i<4; i++) {
+		SCLK(1);
+		_delay_us(DELAY_CLK);
+		data |= ((LCD_CONTROL_BUS_IN >> 0x01) & 1) << (3-i); //0x01 car SID est PD1
+		SCLK(0);
+		_delay_us(DELAY_CLK);
+	}
+	for(i=0; i<4; i++) {
+		SCLK(1);
+		_delay_us(DELAY_CLK);
+		//dummy read
+		SCLK(0);
+		_delay_us(DELAY_CLK);
+	}
+	return data;
 }
