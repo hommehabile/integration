@@ -33,7 +33,8 @@ void Lcd::initialisation() {
     _delay_us(DELAY_US);
 }
 
-void Lcd::writeString(char string[], uint8_t size) {
+void Lcd::writeString(uint8_t string[], uint8_t size) {
+	clearBasicGraphics();
     returnHome(); //on revient a la premiere ligne
     uint8_t tempSize = size;
     for(uint8_t i=0; i<tempSize && i<16; i++) {
@@ -52,12 +53,33 @@ void Lcd::writeString(char string[], uint8_t size) {
 		        sendData(*string++);
 		    }
 		    if(tempSize > 16) {
+		    	tempSize -= 16;
 		    	setDDRAMaddress(0x98); //quatrieme ligne
 		    	for(uint8_t i=0; i<tempSize && i<16; i++) {
 			        sendData(*string++);
 			    }
 		    }
 	    }
+    }
+}
+
+void Lcd::writeHex(uint8_t hex) {
+	clearBasicGraphics();
+    returnHome(); //on revient a la premiere ligne
+    sendData('0');
+    sendData('x');
+    for(uint8_t i=0; i<8; i++) {
+    	sendData(0x30 | ((hex >> (7-i)) & 0x01));
+    }
+}
+
+void Lcd::writeByte(uint8_t byte) {
+	clearBasicGraphics();
+    returnHome(); //on revient a la premiere ligne
+    sendData('0');
+    sendData('b');
+    for(uint8_t i=0; i<8; i++) {
+    	sendData(0x30 | ((byte >> (7-i)) & 0x01));
     }
 }
 
@@ -200,6 +222,8 @@ void Lcd::returnHome() {
 }
 
 void Lcd::clearBasicGraphics() {
+	sendCommand(CMD_BASIC_INSTRUCTION);
+	_delay_us(DELAY_US);
 	sendCommand(CMD_CLEAR_DISPLAY);
 	_delay_us(DELAY_US);
 }
@@ -227,12 +251,14 @@ void Lcd::setPixel(uint8_t x, uint8_t y) {
     readData(); //dummy read();
     uint16_t previousData = 0x0000 | (readData() << 8); //high byte
     previousData |= readData(); //low byte
-
-    //writing current value
-    setGDRAMaddress(xpos, y);
-    uint16_t currentData = previousData | (dot >> modulo);
-    sendData((uint8_t)(currentData >> 8)); //high byte
-	sendData((uint8_t)currentData); //low byte
+    if(previousData != 0xffff) {
+    	//writing current value
+	    setGDRAMaddress(xpos, y);
+	    uint16_t currentData = previousData | (dot >> modulo);
+	    sendData((uint8_t)(currentData >> 8)); //high byte
+		sendData((uint8_t)currentData); //low byte
+    }
+	    
 }
 
 void Lcd::clearPixel(uint8_t x, uint8_t y) {
@@ -310,13 +336,13 @@ void Lcd::transmitSerial(uint8_t rw, uint8_t rs, uint8_t data) {
 	_delay_us(DELAY_CLK);
 	SCLK(0);
 	_delay_us(DELAY_CLK);
-	/*
-	SID(0);
+	
+	SID(0); //buff
 	SCLK(1);
 	_delay_us(DELAY_CLK);
 	SCLK(0);
-	_delay_us(DELAY_CLK);///////////////0, 1, 4 fois???
-	*/
+	_delay_us(DELAY_CLK);
+	
 	for(i=0; i<4; i++) {
 		SID(((data >> (7-i)) & 0x01));
 		SCLK(1);
@@ -366,7 +392,7 @@ uint8_t Lcd::receiveSerial() {
 	_delay_us(DELAY_CLK);
 	SCLK(0);
 	_delay_us(DELAY_CLK);
-
+	
 	//reception
 	uint8_t data = 0x00;
 	for(i=0; i<4; i++) {

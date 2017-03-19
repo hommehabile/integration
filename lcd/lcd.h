@@ -69,7 +69,9 @@
 class Lcd {
 public:
     Lcd(uint8_t mode);
-    void writeString(char string[], uint8_t size);
+    void writeString(uint8_t string[], uint8_t size);
+    void writeHex(uint8_t hex);
+    void writeByte(uint8_t byte);
     void setBasicGraphics(uint8_t display, uint8_t cursor, uint8_t blink);
     void setExtendedGraphics(uint8_t display);
     void clearBasicGraphics();
