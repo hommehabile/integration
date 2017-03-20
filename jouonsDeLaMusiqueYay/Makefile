@@ -28,7 +28,7 @@ PROJECTNAME=test
 # Fichiers sources
 # (Listez tous les fichiers a compiler, ex: 'tp1.c, tp2.cpp'):
 # Utilisez le suffixe .cpp pour les fichiers C++
-PRJSRC=arduinoStarWars.cpp buzzerTune.cpp
+PRJSRC=buzzerTune.cpp
 
 
 

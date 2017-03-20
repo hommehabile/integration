@@ -1,5 +1,5 @@
 //lets play music!
-#include "arduinoStarWars.h"
+#include "arduinoStarWars.cpp"
 
 void initialisation();
 void setFreq(uint16_t freq);
