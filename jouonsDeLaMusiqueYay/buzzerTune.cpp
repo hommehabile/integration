@@ -1,10 +1,5 @@
 //lets play music!
-//#define F_CPU 8000000UL
-//#include <avr/io.h>
-//#include <avr/interrupt.h>
-//#include <util/delay.h>
-//#include <std/array.h>
-#include "arduinoStarWars.cpp"
+#include "arduinoStarWars.h"
 
 void initialisation();
 void setFreq(uint16_t freq);
@@ -16,8 +11,7 @@ int main() {
     PORTD = 0x00;
     
     for(;;) {
-        //tone(A3,Q);
-        //loop();
+        loop();
     }
     return 0;
 }
