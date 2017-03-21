@@ -30,7 +30,7 @@ void initialisation() {
     TCCR1A |= _BV(COM1A0) | _BV(WGM11) | _BV(WGM10);
     //ICNC1=0 ICES1=0 CS1=2 (prescaler 8)
     TCCR1B |= _BV(WGM12) | _BV(WGM13) | _BV(CS11);
-    TIMSK1 |= 0x00; //enable compare A et B
+    TIMSK1 |= 0x00;
     //valeurs de comparaison
     OCR1A = 0x08e1; //2273
     sei();
