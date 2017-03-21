@@ -28,7 +28,7 @@ PROJECTNAME=testBluetooth.cpp
 # Fichiers sources
 # (Listez tous les fichiers a compiler, ex: 'tp1.c, tp2.cpp'):
 # Utilisez le suffixe .cpp pour les fichiers C++
-PRJSRC=memoire_24.cpp uart.cpp lcd.cpp testBluetooth.cpp
+PRJSRC=memoire_24.cpp bluetooth.cpp lcd.cpp testBluetooth.cpp
 
 
 

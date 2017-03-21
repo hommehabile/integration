@@ -72,9 +72,9 @@ void Lcd::writeHex(uint8_t hex) {
 }
 
 void Lcd::writeByte(uint8_t byte) {
-	clearBasicGraphics();
-    sendData('0');
-    sendData('b');
+	//clearBasicGraphics();
+    //sendData('0');
+    //sendData('b');
     for(uint8_t i=0; i<8; i++) {
     	sendData(0x30 | ((byte >> (7-i)) & 0x01));
     }
