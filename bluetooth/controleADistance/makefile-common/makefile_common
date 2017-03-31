@@ -1,0 +1,51 @@
+####### variables #######
+
+#pour creer librairie
+AR=avr-ar
+#compilateur utilise
+CC=avr-gcc
+#pour copier le contenu d'un fichier objet vers un autre
+OBJCOPY=avr-objcopy
+#pour permettre le transfert vers le microcontroleur
+AVRDUDE=avrdude
+#pour supprimer les fichiers lorsque l'on appel make clean
+REMOVE=rm -f
+# HEXFORMAT -- format pour les fichiers produient .hex
+HEXFORMAT=ihex
+
+# Nom du microcontroleur cible
+# (exemple: 'at90s8515')
+MCU=atmega324pa
+
+# Niveau d'optimization
+# Utilisez s (size opt), 1, 2, 3 ou 0 (off)
+OPTLEVEL=s
+
+# Programmer ID - Ne pas changer 
+# Liste complete des IDs disponible avec avrdude
+AVRDUDE_PROGRAMMERID=usbasp
+
+####### Options de compilation #######
+# Flags pour le compilateur en C++
+CXXFLAGS=-fno-exceptions     
+
+# Linker pour lier les librairies utilisees
+LDFLAGS=-Wl,-Map,$(TRG).map -mmcu=$(MCU)
+
+####### Definition de tout les fichiers objets #######
+
+# Cette fonction permet de differencier les fichiers .c
+# des fichiers .cpp
+# Fichier C
+CFILES=$(filter %.c, $(PRJSRC))
+# Fichier C++
+CPPFILES=$(filter %.cpp, $(PRJSRC))
+
+# Liste de tout les fichiers objet que nous devons creer
+OBJDEPS=$(CFILES:.c=.o) \
+	$(CPPFILES:.cpp=.o)
+	
+# Pour plus d'information sur cette section, consulter :
+# http://bit.ly/257R53E	
+# Les fonctions $(filter patternâ\u20acŠ,text) &
+# $(patsubst pattern,replacement,text) sont pertinentes
