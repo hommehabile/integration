@@ -8,13 +8,11 @@ int main() {
 	PORTB = 0x00;
 	DDRD |= 0x02;
 
-	uint8_t reponse[200];
-	uint8_t size = blue.receiveString(reponse, 200);
-
-	lcd.writeString(reponse, size);
 	lcd.setBasicGraphics(1, 0, 0);
-
+	uint8_t reponse[200], size;
 	for(;;) {
-		
+		size = blue.receiveString(reponse, 200);
+		blue.flush();
+		lcd.writeString(reponse, size);
 	}
 }
