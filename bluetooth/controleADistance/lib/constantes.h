@@ -12,6 +12,8 @@
 //ports
 enum Ports {A, B, C, D};
 
+enum Couleur {ROUGE_PARCOURS, VERT_PARCOURS};
+
 //del
 #define ETEINTE 0
 #define VERTE 1

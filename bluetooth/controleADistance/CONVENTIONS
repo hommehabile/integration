@@ -1,0 +1,31 @@
+Conventions pour notre projet:
+
+Ports:
+
+PORTA: 0-3: Lcd potentiel...
+       4-5: Convertisseur Analogique Numerique
+       6-7: Bontons du breadboard
+PORTB: 0-1: Del libre
+       2-3: A voir...
+       3-5: Piezo
+       6-7: A voir
+PORTC: 0-1: A voir...
+       2-7: Capteur de ligne Cytron
+PORTD: 0-3: A voir...
+       4-7: Moteurs
+
+
+Couleurs de Del:
+Vert: PORTB &= 0xfd; PORTB |= 0x01;
+Rouge: PORTB &= 0xfe; PORTB |= 0x02; 
+
+
+Mehode de transfert:
+1-Faire une fichier avec les mnemoniques
+touch mnemo.txt
+2-Convertir le fichier avec progmem.py
+python3 progmem.py -o mnemo.bin mnemo.txt
+3-Faire un make install dans le dossier tranfert
+make install
+4-Transferer le bytecode avec serieViaUsb
+./serieViaUsb -e -f mnemo.bin

@@ -1,0 +1,54 @@
+//bonne fete
+dbt ;
+sgo 62;            //re0(D) croche
+att 20;
+sgo 62;            //re0(D) croche 
+att 20;
+sgo 64;            //mi0(E) noire
+att 40;
+sgo 62;            //re0(D) noire
+att 40;
+sgo 67;            //sol0(G) noire
+att 40;
+sgo 66;            //fa#0(F#) blanche
+att 80;
+sgo 62;            //re0(D) croche
+att 20;
+sgo 62;            //re0(D) croche
+att 20;
+sgo 64;            //mi0(E) noire
+att 40;
+sgo 62;            //re0(D) noire
+att 40;
+sgo 69;            //la0(A) noire
+att 40;
+sgo 67;            //sol0(G) blanche
+att 80;
+sgo 62;            //re0(D) croche 
+att 20;
+sgo 62;            //re0(D) croche 
+att 20;
+sgo 74;            //re1(D) noire
+att 40;
+sgo 71;            //si0(B) noire
+att 40;
+sgo 67;            //sol0(G) noire
+att 40;
+sgo 66;            //fa#0(F#) noire
+att 40;
+sgo 64;            //mi0(E) noire
+att 40;
+sgo 72;            //do1(C) croche
+att 20;
+sgo 72;            //do1(C) croche
+att 20;
+sgo 71;            //si0(B) noire
+att 40;
+sgo 67;            //sol0(G) noire
+att 40;
+sgo 69;            //la0(A) noire
+att 40;
+sgo 67;            //sol0(G) blanche
+att 80;
+sar ;
+fin;

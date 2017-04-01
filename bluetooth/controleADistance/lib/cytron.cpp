@@ -1,5 +1,4 @@
-#include "cytron.cpp"
-#include "can.h"
+#include "cytron.h"
 
 /*
  *                      SYNOPSIS
@@ -7,6 +6,14 @@
  * Il possède 5 capteurs. Chacun est indépendant. Si un capteur voit quelque une ligne 
  * foncé, la sortie au port sera 1. On le capte au port 1.
  */
+
+volatile bool tableauDetecteurs[5] = {false, false, false, false, false};
+
+ISR(PCINT2_vect) {
+	for(uint8_t i=0; i<5; i++) {
+		tableauDetecteurs[i] = (PINC & (1<<(i+2))) >> (i+2); //update le tableau des detecteurs
+	}
+}
 
 /***************************************************************************
  * Fonction              : Cytron()
@@ -16,10 +23,11 @@
  * Parametres de sortie  :     
  * 		  Aucun.
  ***************************************************************************/
-Cytron::Cytron() : {
-void initialisation();
-
+Cytron::Cytron() {
+	initialisation();
 }
+
+Cytron::~Cytron() {}
 
 /***************************************************************************
  * Fonction              : Initialisation()
@@ -29,63 +37,17 @@ void initialisation();
  * Parametres de sortie  :     
  * 		  Aucun.
  ***************************************************************************/
-Cytron::Initialisation(){
-
-DDRA = 0x00;  //PORTA en entrée
-
-}
-/***************************************************************************
- * Fonction              : GetPin()
- * Description           : Obtenir la bonne Pin d'entree.
- * Parametres d'entree   : 
- * 		  Aucun.
- * Parametres de sortie  :     
- * 		  Aucun.
- ***************************************************************************/
-
-int Cytron::getPin(int DECT)
-{
-	switch (DECT){
-
-		case DECT1:
-			return 0x02;
-			break;
-		case DECT2:
-			return 0x03;
-			break;
-		case DECT3:
-			return 0x04;
-			break;
-		case DECT4:
-			return 0x05;
-			break;
-		case DECT5:
-			return 0x06;
-			break;
-	}
+void Cytron::initialisation() {
+	DDRC &= 0x03;  //PORTC<7..2> en entrée
+	PCIFR |= (1<<PCIF2);
+	PCMSK2 |= (1<<PCINT18) | (1<<PCINT19) | (1<<PCINT20) | (1<<PCINT21) | (1<<PCINT22);
 }
 
-/***************************************************************************
- * Fonction              : Detection()
- * Description           : Bool pour savoir si il y a detection.
- * Parametres d'entree   : 
- * 		  Aucun.
- * Parametres de sortie  :     
- * 		  Aucun.
- ***************************************************************************/
-bool Cytron::Detection(int DECT){
-
-    
-    int position = getPin();                       
-    uint8_t valeurPort;
-    Can convertisseur         
-   
-        valeurPort = (convertisseur.lecture(position) && 0x01);  
-        if(valeurPort ==1) {
-            return true;
-        } 
-	else {
-            return false;
-        }
-    
+void Cytron::debutDetection() {
+	PCIFR |= (1<<PCIF2); //enable interrupts
 }
+
+void Cytron::arretDetection() {
+	PCIFR &= ~(1<<PCIF2); //disable interrupts
+}
+

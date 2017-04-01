@@ -18,21 +18,25 @@ include ../makefile-common/makefile_common
 #####      Details specifique a la cible       #####
 #####  Vous devez les adapter a votre projet   #####
 
-# Nom de la librairie
-LIBNAME=libprojet6771
-TRGDIR=./
-PROJECTNAME=$(LIBNAME)
+# Nom du microcontroleur cible
+# (exemple: 'at90s8515')
+MCU=atmega324pa
+
+# Nom de votre projet
+# (utilisez un seul mot, exemple: 'monprojet')
+PROJECTNAME=projet
 
 # Fichiers sources
 # (Listez tous les fichiers a compiler, ex: 'tp1.c, tp2.cpp'):
 # Utilisez le suffixe .cpp pour les fichiers C++
-PRJSRC= constantes.h memoire_24.cpp can.cpp bouton.cpp del.cpp minuterie.cpp moteur.cpp uart.cpp piezo.cpp cytron.cpp
+PRJSRC= Robot.cpp Parcours.cpp bluetooth.cpp Instruction.cpp GestionnaireInstructions.cpp main.cpp
+#***METTRE TOUS NOS MANAGERS ICI***
 
 # Inclusions additionnels (ex: -I/path/to/mydir)
-INC=
+INC= -I ../lib
 
 # Libraires a lier (ex: -lmylib)
-LIBS=
+LIBS= ../lib/libprojet6771.a
 
 
 ####################################################
@@ -51,16 +55,13 @@ LIBS=
 CFLAGS= -I. -c -MMD $(INC) -g -mmcu=$(MCU) -O$(OPTLEVEL) \
 	-fpack-struct -fshort-enums             \
 	-funsigned-bitfields -funsigned-char    \
-	-Wall
-
-# Flags pour le compilateur de la librairie  
-ARFLAGS = crs                                      
+	-Wall                                        
 
 
 ####### Cible (Target) #######
 
 #Nom des cibles par defaut
-LIBTRG=$(TRGDIR)$(LIBNAME).a
+TRG=$(PROJECTNAME).out
 HEXROMTRG=$(PROJECTNAME).hex
 HEXTRG=$(HEXROMTRG) $(PROJECTNAME).ee.hex
 
@@ -75,11 +76,12 @@ HEXTRG=$(HEXROMTRG) $(PROJECTNAME).ee.hex
 
 # Make all permet simplement de compiler le projet
 #
-all: $(LIBTRG)
+all: $(TRG)
 
 # Implementation de la cible
-$(LIBTRG): $(OBJDEPS)
-	$(AR) $(ARFLAGS) -o $(LIBTRG) $(OBJDEPS) 
+$(TRG): $(OBJDEPS) $(LIBS) 
+	$(CC) $(LDFLAGS) -o $(TRG) $(OBJDEPS) \
+	-lm $(LIBS)
 
 # Production des fichiers object
 # De C a objet
@@ -100,10 +102,18 @@ $(LIBTRG): $(OBJDEPS)
 	$(OBJCOPY) -j .text -j .data \
 		-O $(HEXFORMAT) $< $@
 
+
+# Make install permet de compiler le projet puis
+# d'ecrire le programme en memoire flash dans votre
+# microcontroleur. Celui-ci doit etre branche par cable USB
+install: $(HEXROMTRG)				
+	$(AVRDUDE) -c $(AVRDUDE_PROGRAMMERID)   \
+	-p $(MCU) -P -e -U flash:w:$(HEXROMTRG)
+
 # Make clean permet d'effacer tout les fichiers generes
 # lors de la compilation
 clean:
-	$(REMOVE) $(OBJDEPS) *.d
+	$(REMOVE) $(TRG) $(TRG).map $(OBJDEPS) $(HEXTRG) *.d
 
 # Pour plus d'information sur les phony target, consulter:
 # http://bit.ly/1WBQe61

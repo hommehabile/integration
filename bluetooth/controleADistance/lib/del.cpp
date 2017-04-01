@@ -1,13 +1,5 @@
 #include "del.h"
 
-/***************************************************************************
- * Fonction              : Del()
- * Description           : Constructeur par defaut de la classe Del.
- * Parametres d'entree   : 
- * 		  Aucun.
- * Parametres de sortie  :     
- * 		  Aucun.
- ***************************************************************************/
 Del::Del(){}			// Constructeur par defaut.
 
 // Constructeur par parametres.
@@ -26,109 +18,43 @@ Del::Del(){}			// Constructeur par defaut.
 // Il est a noter que le fils pourra juste etre lier a la verticale.
 // Pour eviter toute confusion, nous utiliserons le numeroPortUn pour
 // la ligne en bas et le numeroPortDeux pour la ligne en haut.
-Del::Del(Ports lettrePort, uint8_t numeroPortUn, uint8_t numeroPortDeux){
+Del::Del(volatile uint8_t *port, uint8_t numeroPortUn, uint8_t numeroPortDeux){
 	
-	lettrePort_ = lettrePort;
+	port_ = port;
 	numeroPortUn_ = numeroPortUn;
 	numeroPortDeux_ = numeroPortDeux;
-	switch (lettrePort_){		// Dependamment de de la lettre du Port utilise 
-		case A:
-				DDRA |= (1 << numeroPortUn_) | (1 << numeroPortDeux_);
-				break;
-		case B:
-				DDRB |= (1 << numeroPortUn_) | (1 << numeroPortDeux_);
-				break;
-		case C:
-				DDRC |= (1 << numeroPortUn_) | (1 << numeroPortDeux_);
-				break;
-		case D:
-				DDRD |= (1 << numeroPortUn_) | (1 << numeroPortDeux_);
-				break;
-	}
+	/*if(port_ == &PORTA)
+		DDRA |= (1 << numeroPortUn_) | (1 << numeroPortDeux_);
+	else if(port_ == &PORTB)
+		DDRB |= (1 << numeroPortUn_) | (1 << numeroPortDeux_);
+	else if(port_ == &PORTC)
+		DDRC |= (1 << numeroPortUn_) | (1 << numeroPortDeux_);
+	else if(port_ == &PORTD)
+		DDRD |= (1 << numeroPortUn_) | (1 << numeroPortDeux_);*/
 }
 
-/***************************************************************************
- * Fonction              : ~Del()
- * Description           : Destructeur de la classe Del.
- * Parametres d'entree   : 
- * 		  Aucun.
- * Parametres de sortie  :     
- * 		  Aucun.
- ***************************************************************************/
-Del::~Del(){}
 
-/***************************************************************************
- * Fonction              : afficherVert
- * Description           : Cette fonction permet d'afficher la couleur verte.
- * Parametres d'entree   : 
- * 		  Aucun.
- * Parametres de sortie  :     
- * 		  Aucun.
- ***************************************************************************/
-void Del::afficherVert() {
+Del::~Del(){}				// Destructeur
+
+
+void Del::afficherVert() {	// Afficher la couleur vert
 	
-    etat_ = VERTE;											// Decimale = 1, valeur binaire = 0b01
+    etat_ = VERTE;			// Decimale = 1, valeur binaire = 0b01
 
-	switch (lettrePort_){									// Dependamment de de la lettre du Port utilise 
-		case A:
-				PORTA &= ~(1 << numeroPortDeux_);			// Enlever le bit voulu
-				PORTA |= (1 << numeroPortUn_);				// Rajouter le bit voulu
-				break;
-		case B:
-				PORTB &= ~(1 << numeroPortDeux_);
-				PORTB |= (1 << numeroPortUn_);
-				break;
-		case C:
-				PORTC &= ~(1 << numeroPortDeux_);
-				PORTC |= (1 << numeroPortUn_);
-				break;
-		case D:
-				PORTD &= ~(1 << numeroPortDeux_);
-				PORTD |= (1 << numeroPortUn_);
-				break;
-	}
+    *port_ &= ~(1 << numeroPortDeux_);
+    *port_ |= (1 << numeroPortUn_);
 }
 
-/***************************************************************************
- * Fonction              : afficherRouge
- * Description           : Cette fonction permet d'afficher la couleur rouge.
- * Parametres d'entree   : 
- * 		  Aucun.
- * Parametres de sortie  :     
- * 		  Aucun.
- ***************************************************************************/
+// Afficher la couleur rouge
 void Del::afficherRouge() {
 	
-	etat_ = ROUGE;											// Decimale = 2, valeur binaire = 0b10
+	etat_ = ROUGE;			// Decimale = 2, valeur binaire = 0b10
 
-	switch (lettrePort_){									// Dependamment de de la lettre du Port utilise 
-		case A:
-				PORTA &= ~(1 << numeroPortUn_);				// Enlever le bit voulu
-				PORTA |= (1 << numeroPortDeux_);			// Rajouter le bit voulu
-				break;
-		case B:
-				PORTB &= ~(1 << numeroPortUn_);
-				PORTB |= (1 << numeroPortDeux_);
-				break;
-		case C:
-				PORTC &= ~(1 << numeroPortUn_);
-				PORTC |= (1 << numeroPortDeux_);
-				break;
-		case D:
-				PORTD &= ~(1 << numeroPortUn_);
-				PORTD |= (1 << numeroPortDeux_);
-				break;
-	}
+	*port_ &= ~(1 << numeroPortUn_);
+    *port_ |= (1 << numeroPortDeux_);
 }
 
-/***************************************************************************
- * Fonction              : afficherAmbre
- * Description           : Cette fonction permet d'afficher la couleur ambre.
- * Parametres d'entree   : 
- * 		  Aucun.
- * Parametres de sortie  :     
- * 		  Aucun.
- ***************************************************************************/
+// Afficher la couleur ambre
 void Del::afficherAmbre(){
     etat_ = AMBRE;
     afficherRouge();
@@ -137,81 +63,26 @@ void Del::afficherAmbre(){
     _delay_ms(3);
 }
 
-/***************************************************************************
- * Fonction              : eteindre
- * Description           : Cette fonction permet d'aeteindre la DEL.
- * Parametres d'entree   : 
- * 		  Aucun.
- * Parametres de sortie  :     
- * 		  Aucun.
- ***************************************************************************/
+// Afficher aucune couleur
 void Del::eteindre() {
 	
 	etat_ = ETEINTE;		// Decimale = 0, valeur binaire = 0b00
 
-	switch (lettrePort_){	// Dependamment de de la lettre du Port utilise 
-		case A:
-				PORTA &= ~((1 << numeroPortUn_) | (1 << numeroPortDeux_));		// Enlever les bits voulus
-				break;
-		case B:
-				PORTB &= ~((1 << numeroPortUn_) | (1 << numeroPortDeux_));		// Enlever les bits voulus
-				break;
-		case C:
-				PORTC &= ~((1 << numeroPortUn_) | (1 << numeroPortDeux_));		// Enlever les bits voulus
-				break;
-		case D:
-				PORTD &= ~((1 << numeroPortUn_) | (1 << numeroPortDeux_));		// Enlever les bits voulus
-				break;
-	}
+	*port_ &= ~((1 << numeroPortUn_) | (1 << numeroPortDeux_));
 }
 
-/***************************************************************************
- * Fonction              : obtenirEtat
- * Description           : Accesseur pour l'attribut etat_.
- * Parametres d'entree   : 
- * 		  Aucun.
- * Parametres de sortie  :     
- * 		- etat_ (uint8_t): Retourne l'attribut etat_.
- ***************************************************************************/
+// Methodes d'acces
 uint8_t Del::obtenirEtat() {
     return etat_;
 }
 
-/***************************************************************************
- * Fonction              : obtenirLettrePort
- * Description           : Accesseur pour l'attribut lettrePort_.
- * Parametres d'entree   : 
- * 		  Aucun.
- * Parametres de sortie  :     
- * 		- lettrePort_ (Ports): 
- *						   Retourne l'attribut lettrePort_.
- ***************************************************************************/
-Ports Del::obtenirLettrePort() {
-    return lettrePort_;
+volatile uint8_t* Del::obtenirLettrePort() {
+    return port_;
 }
-
-/***************************************************************************
- * Fonction              : obtenirNumeroPortUn
- * Description           : Accesseur pour l'attribut numeroPortUn_.
- * Parametres d'entree   : 
- * 		  Aucun.
- * Parametres de sortie  :     
- * 		- numeroPortUn_ (uint8_t): 
- *						   Retourne l'attribut numeroPortUn_.
- ***************************************************************************/
 uint8_t Del::obtenirNumeroPortUn() {
     return numeroPortUn_;
 }
 
-/***************************************************************************
- * Fonction              : obtenirNumeroPortDeux
- * Description           : Accesseur pour l'attribut numeroPortDeux_.
- * Parametres d'entree   : 
- * 		  Aucun.
- * Parametres de sortie  :     
- * 		- numeroPortDeux_ (uint8_t): 
- *						   Retourne l'attribut numeroPortDeux_.
- ***************************************************************************/
 uint8_t Del::obtenirNumeroPortDeux() {
     return numeroPortDeux_;
 }

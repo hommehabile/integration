@@ -8,7 +8,9 @@
  * Parametres de sortie  :     
  * 		  Aucun.
  ***************************************************************************/
-Piezo::Piezo() : onde_(0) {}
+Piezo::Piezo() {
+    initialisationRegistres();
+}
 
 /***************************************************************************
  * Fonction              : Piezo()
@@ -19,7 +21,21 @@ Piezo::Piezo() : onde_(0) {}
  * Parametres de sortie  :     
  * 		  Aucun.
  ***************************************************************************/
-Piezo::Piezo(uint8_t frequence) : onde_(frequence) {}
+Piezo::Piezo(uint8_t ratio) : ratio_(ratio) {
+    initialisationRegistres();
+    ajusterValeursComparaison();
+}
+
+void Piezo::initialisationRegistres() {
+    DDRB |= 0xff;
+    //Met le compteur a 0.
+    TCNT0 = 0;
+
+    //fast pwm avec OCR0A top
+    TCCR0A |= _BV(COM0B1) | _BV(WGM01) | _BV(WGM00);
+    TCCR0B |= _BV(WGM02) | _BV(CS02);     // division d'horloge par 256
+}
+
 
 /***************************************************************************
  * Fonction              : ~Piezo()
@@ -42,7 +58,10 @@ Piezo::~Piezo() {}
  * 		  Aucun.
  ***************************************************************************/
 void Piezo::debutSon() {
-    onde_.debutPwm();
+    PORTB = 0x00;
+    
+    //enable le compteur
+    TCCR0B |= _BV(CS02);
 }
 
 /***************************************************************************
@@ -56,7 +75,8 @@ void Piezo::debutSon() {
  * 		  Aucun.
  ***************************************************************************/
 void Piezo::arretSon() {
-    onde_.arretPwm();
+    //disable le compteur
+    TCCR0B &= ~(0x00 | _BV(CS02));
 }
 
 /***************************************************************************
@@ -71,21 +91,27 @@ void Piezo::arretSon() {
  * 		  Aucun.
  ***************************************************************************/
 void Piezo::setFrequence(uint8_t note){
-    double tableauFrequence[] = { 110.00, 116.54, 123.47, 130.81, 138.59,       //45-49
-                                   146.83, 155.56, 164.81, 174.61, 184.99,      //50-54
-                                   195.99, 207.65, 220.00, 233.08, 246.94,      //55-59
-                                   261.63, 277.18, 293.66, 311.12, 329.63,      //60-64
-                                   349.23, 369.99, 391.99, 415.30, 440.00,      //65-69
-                                   466.16, 493.88, 523.25, 554.37, 587.33,      //70-74
-                                   622.25, 659.25, 698.45, 739.99, 783.99,      //75-79
-                                   830.61, 880.00 };                            //80-81
+    note -= 45;
+    if (note >= 0 && note <=36) {
+        double top = 0;
+        double tableauFrequence[] = { 110.00, 116.54, 123.47, 130.81, 138.59,       //45-49
+                                    146.83, 155.56, 164.81, 174.61, 184.99,      //50-54
+                                    195.99, 207.65, 220.00, 233.08, 246.94,      //55-59
+                                    261.63, 277.18, 293.66, 311.12, 329.63,      //60-64
+                                    349.23, 369.99, 391.99, 415.30, 440.00,      //65-69
+                                    466.16, 493.88, 523.25, 554.37, 587.33,      //70-74
+                                    622.25, 659.25, 698.45, 739.99, 783.99,      //75-79
+                                    830.61, 880.00 };                            //80-81
         
-    double top = 0;
-    top = tableauFrequence[note-45];                   //frequence desire
-    
-    top = (1/top) * (8000000/256);                     //frequence en période (ms)/2
-        
-    note = note-45;
-    if (note >= 0 && note <=36)
-        onde_.modifierRatio((uint8_t)top);
+        top = tableauFrequence[note];                   //frequence desire
+        top = (1/top) * (8000000/256);                     //frequence en période (ms)/2
+        ratio_ = top;
+        ajusterValeursComparaison();
+    }
+}
+
+void Piezo::ajusterValeursComparaison() {
+    TCNT0 = 0;
+    OCR0A = ratio_;
+    OCR0B = ratio_/2;
 }

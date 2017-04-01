@@ -5,7 +5,7 @@ GestionnaireInstructions::GestionnaireInstructions() {}
 void GestionnaireInstructions::executer() {
 	Instruction uneInstruction;
 	while(1){
-		uneInstruction.setOpcode(blue_.receive());
+        uneInstruction.setOpcode(blue_.receive());
         blue_.receive();
         blue_.receive();//flushing
         uneInstruction.setOperande(blue_.receive());
@@ -16,35 +16,33 @@ void GestionnaireInstructions::executer() {
                     delai_ms(uneInstruction.getOperande() * 25);       //25 fois la valeur de l'operande
                     break;
                 case dal:
-                    del_.allumerDel(uneInstruction.getOperande());
+                    PORTB = 0x01;
+                    robot_.allumerDel(uneInstruction.getOperande());
                     break;
                 case det:
-                    del_.fermerDel(uneInstruction.getOperande()); 
+                    robot_.fermerDel(uneInstruction.getOperande()); 
                     break;
                 case sgo: 
-                    piezo_.debutSon();
-                    piezo_.setFrequence(uneInstruction.getOperande());
+                    
                     break;
                 case sar: 
-                    piezo_.arretSon();
+                    
                     break;
-                case mar: 
-                    moteur_.arreter();
-                    break;
+                case mar:
                 case 0x61:
-                    moteur_.arreter();
+                    robot_.arreter();
                     break;
                 case mav:
-                    moteur_.avancer(uneInstruction.getOperande()); 
+                    robot_.avancer(uneInstruction.getOperande(), uneInstruction.getOperande()); 
                     break;
                 case mre: 
-                    moteur_.reculer(uneInstruction.getOperande());
+                    robot_.reculer(uneInstruction.getOperande(), uneInstruction.getOperande());
                     break;
                 case trd: 
-                    moteur_.tournerDroite();
+                    robot_.tournerDroite();
                     break;
                 case trg: 
-                    moteur_.tournerGauche();
+                    robot_.tournerGauche();
                     break;
                 case dbc:
                     //not implemented yet
@@ -52,9 +50,8 @@ void GestionnaireInstructions::executer() {
                 case fbc:
                 	//not implemented yet
                     break;
-                case fin: 
-                    finProg_ = true;
-                    moteur_.arreter();
+                case fin:
+                    robot_.arreter();
                     break;
         }
 	}

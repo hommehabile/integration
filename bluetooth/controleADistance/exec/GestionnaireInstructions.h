@@ -1,15 +1,8 @@
 #ifndef GESTIONNAIREINSTRUCTIONS_H
 #define GESTIONNAIREINSTRUCTIONS_H
 
-#include "lib/bouton.h"
-#include "lib/memoire_24.h"
-#include "lib/can.h"
-#include "lib/uart.h"
-#include "lib/piezo.h"
+#include "Robot.h"
 #include "bluetooth.h"
-
-#include "GestionnaireDel.h"
-#include "GestionnaireMoteurs.h"
 #include "Instruction.h"
 
 #define dbt 0x01 		//debut
@@ -34,14 +27,8 @@ public:
 	void executer();
 
 private:
-	Memoire24CXXX mem_;
-    Minuterie minut_;
-	GestionnaireDel del_;
-    Piezo piezo_;
-    GestionnaireMoteurs moteur_;
+	Robot robot_;
     Bluetooth blue_;
-    bool debut_, finProg_;
-    uint16_t tailleProg_;
 };
 
 #endif

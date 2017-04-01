@@ -1,0 +1,9 @@
+#!/bin/bash
+
+#python3 progmem.py -o mnemo.bin mnemo.txt
+progmem -v -o bonnefete.bin bonnefete
+make install
+make clean
+serieViaUSB -e -f bonnefete.bin
+
+echo "EXECUTE TRANSFERT IS DONE!"

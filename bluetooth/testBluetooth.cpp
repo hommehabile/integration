@@ -11,8 +11,9 @@ int main() {
 	lcd.setBasicGraphics(1, 0, 0);
 	uint8_t reponse[200], size;
 	for(;;) {
-		size = blue.receiveString(reponse, 200);
-		blue.flush();
-		lcd.writeString(reponse, size);
+		size = blue.receive();
+		blue.receive();
+		blue.receive();
+		lcd.writeByte(size);
 	}
 }
