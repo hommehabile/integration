@@ -9,7 +9,13 @@ bool Bluetooth::testAT() {
 	transmit('T');
 	transmit(0x0d);
 	transmit(0x0a);
-	return receive();
+	uint8_t reponse = receive();
+	if(reponse == 'O') {
+		reponse = receive();
+		if(reponse == 'K')
+			return true;
+	}
+	return false;
 }
 
 void Bluetooth::changeName(char name[]) {
