@@ -6,17 +6,14 @@
 class Piezo {
 public:
     Piezo();
-    Piezo(uint8_t ratio);
-    ~Piezo();
     
-    void debutSon();
-    void arretSon();
+    void debutSon() const;
+    void arretSon() const;
     
-    void setFrequence(uint8_t note);
+    void modifierFrequence(uint8_t note);
 private:
     uint8_t ratio_;
-    void initialisationRegistres();
-    void ajusterValeursComparaison();
+    void initialisationRegistres() const;
 };
 
 #endif

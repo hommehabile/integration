@@ -1,8 +1,7 @@
 #ifndef CYTRON_H
 #define CYTRON_H
 
-#include <avr/io.h>
-#include <avr/interrupt.h>
+#include "constantes.h"
 
 #define PIN_CYTRON PINC
 
@@ -11,12 +10,7 @@ enum Detecteur {GAUCHE2 = 0, GAUCHE1 = 1, CENTRE = 2, DROITE1 = 3, DROITE2 = 4};
 class Cytron {
 public:
     Cytron();
-    ~Cytron();
-    
-    void initialisation();
-    void debutDetection();
-    void arretDetection();
-    
+    bool tableau(uint8_t Gauche2, uint8_t Gauche1, uint8_t Centre, uint8_t Droite1, uint8_t Droite2);
 };
 
 #endif

@@ -8,13 +8,8 @@ public:
 	Minuterie();
 
 	void partirMinuterie(uint16_t duree);
-	void arreterMinuterie();
-
-	bool getMinuterieExpiree();
-
-	void setMinuterieExpiree(bool expiree);
-private:
-	bool minuterieExpiree_;
+	void arreterMinuterie() const;
+	bool obtenirMinuterieExpiree() const;
 };
 
 void delai_us(uint16_t nombreUs);

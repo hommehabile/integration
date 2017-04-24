@@ -7,14 +7,6 @@
  * foncé, la sortie au port sera 1. On le capte au port 1.
  */
 
-volatile bool tableauDetecteurs[5] = {false, false, false, false, false};
-
-ISR(PCINT2_vect) {
-	for(uint8_t i=0; i<5; i++) {
-		tableauDetecteurs[i] = (PINC & (1<<(i+2))) >> (i+2); //update le tableau des detecteurs
-	}
-}
-
 /***************************************************************************
  * Fonction              : Cytron()
  * Description           : Constructeur par defaut de la classe Cytron.
@@ -24,30 +16,49 @@ ISR(PCINT2_vect) {
  * 		  Aucun.
  ***************************************************************************/
 Cytron::Cytron() {
-	initialisation();
+	DDRC &= 0x03;  //PORTC<7..2> en entrée
+    PCICR |= (1<<PCIE2);
+    PCMSK2 |= (1<<PCINT18) | (1<<PCINT19) | (1<<PCINT20) | (1<<PCINT21) | (1<<PCINT22);
 }
-
-Cytron::~Cytron() {}
 
 /***************************************************************************
- * Fonction              : Initialisation()
- * Description           : Initialisation de la classe Cytron.
+ * Fonction              : tableau
+ * Description           : Cette fonction compare les parametres recus avec
+ *                         le capteur du robot.  Voir synopsis pour de plus
+ *                         amples informations.
+ *                         L'entre 2 agit comme un "don't care".
  * Parametres d'entree   : 
- * 		  Aucun.
+ * 		- gauche2 (uint8_t) :
+ *                         Valeur qui devra etre compare avec le capteur le plus a gauche.
+ *      - gauche1 (uint8_t) :
+ *                         Valeur qui devra etre compare avec le capteur se situant
+ *                         entre celui completement a gauche et celui du centre.
+ *      - centre (uint8_t) :
+ *                         Valeur qui devra etre compare avec le capteur en plein centre.
+ *      - droite1 (uint8_t) :
+ *                         Valeur qui devra etre compare avec le capteur se situant
+ *                         entre celui completement a droite et celui du centre.
+ *      - droite2 (uint8_t) :
+ *                         Valeur qui devra etre compare avec le capteur le plus a droite.
  * Parametres de sortie  :     
- * 		  Aucun.
+ * 		- estDetect (bool) :
+ *                         Retournera vraie si les valeurs en entree coincide avec
+ *                         les valeurs du capteur.
  ***************************************************************************/
-void Cytron::initialisation() {
-	DDRC &= 0x03;  //PORTC<7..2> en entrée
-	PCIFR |= (1<<PCIF2);
-	PCMSK2 |= (1<<PCINT18) | (1<<PCINT19) | (1<<PCINT20) | (1<<PCINT21) | (1<<PCINT22);
-}
+bool Cytron::tableau(uint8_t gauche2, uint8_t gauche1, uint8_t centre, uint8_t droite1, uint8_t droite2) {
+    bool estDetect = false;
+    if (gauche2 == 2 || ((PINC & (1<<PC2))>>PC2) == gauche2){				
+        if (gauche1 == 2 || ((PINC & (1<<PC3))>>PC3)  == gauche1){			
+            if (centre == 2 || ((PINC & (1<<PC4))>>PC4)  == centre){		
+                if (droite1 == 2 || ((PINC & (1<<PC5))>>PC5)  == droite1){	
+                    if (droite2 == 2 || ((PINC & (1<<PC6))>>PC6)  == droite2){   
+                        estDetect = true;
+                    }
+                }
+            }
+        }
+    }
+	return estDetect;
+};
 
-void Cytron::debutDetection() {
-	PCIFR |= (1<<PCIF2); //enable interrupts
-}
-
-void Cytron::arretDetection() {
-	PCIFR &= ~(1<<PCIF2); //disable interrupts
-}
 

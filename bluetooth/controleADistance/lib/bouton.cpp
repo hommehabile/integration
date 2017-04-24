@@ -1,5 +1,33 @@
 #include "bouton.h"
 
+Bouton::Bouton() {}
+
+/***************************************************************************
+ * Fonction              : Bouton()
+ * Description           : Constructeur par parametre de la classe Bouton.
+ * Parametres d'entree   : 
+ * 		- regitre (volatile uint8_t *) :
+ *						   Permettera l'initisation des PINs du bon port.
+ *	    - numeroPin (uint8_t) :
+ *						   Specifie qu'elle PIN initialiser.
+ * Parametres de sortie  :     
+ * 		  Aucun.
+ ***************************************************************************/
+Bouton::Bouton(volatile uint8_t *registre, uint8_t numeroPin, bool inverse) {
+	registre_ = registre;
+	numeroPin_ = numeroPin;
+	inverse_ = inverse;
+
+	if(registre_ == &PORTA)
+		DDRA &= ~(1 << numeroPin_);
+	else if(registre_ == &PORTB)
+		DDRB &= ~(1 << numeroPin_);
+	else if(registre_ == &PORTC)
+		DDRC &= ~(1 << numeroPin_);
+	else if(registre_ == &PORTD)
+		DDRD &= ~(1 << numeroPin_);
+}
+
  /***************************************************************************
  * Fonction              : etatBoutton
  * Description           : Cette fonction permet de retourner l'etat dans
@@ -12,50 +40,21 @@
  *						   etatBtn sera a TRUE.  Si le boutton n'est pas presse,
  *                         etatBtn sera a FALSE.
  ***************************************************************************/
-bool etatBoutton(Ports port, uint8_t pin){
-    bool etatBtn = false;
-	switch(port) {
-		case A:
-			etatBtn = antiRebond(PINA, pin);
-			break;
-		case B:
-			etatBtn = antiRebond(PINB, pin); 
-			break;
-		case C:
-			etatBtn = antiRebond(PINC, pin); 
-			break;
-		case D:
-			etatBtn = antiRebond(PIND, pin); 
-			break;
-	}
-    return etatBtn;
-}
-
- /***************************************************************************
- * Fonction              : antiRebond
- * Description           : Cette fonction permet d'obtenir l'etat reel d'un 
- * 						   port et d'une pin specifie en parametre.  En effet,
- * 					       cette fonction permet d'ignorer les rebonds mecaniques
- * 						   produient lorsque l'on presse un boutton, et ainsi 
- * 					       detecte que le boutton n'a ete presse qu'une seule fois 
- *						   dans un tres court interval de temps.
- * Parametres d'entree   : 
- * 		- unPort (uint8_t) : 
- *						   Specifie le port dont il faut verifier l'etat.
- *		- laPin  (uint8_t) : 
- *						   Specifie le numero de la pin dont il faut verifier l'etat.
- * Parametres de sortie  :     
- * 		- etat (bool)      : 
- *						   Renvoie l'etat du boutton.  Si le boutton est pressé,
- *                         etatBtn sera a TRUE.  Si le boutton n'est pas pressé, etatBtn
- *                         sera à FALSE.
- ***************************************************************************/
-bool antiRebond(uint8_t unPort, uint8_t laPin) {
-	bool etat = false;
-	if(unPort & laPin) {
-		_delay_ms(10);
-		if(unPort & laPin)         
-			etat = true;   
+bool Bouton::etatBouton(){
+    bool etat = false;
+    if(inverse_) {
+    	if(~(*registre_ | ~(1<<numeroPin_))) {
+			_delay_ms(10);
+			if(~(*registre_ | ~(1<<numeroPin_)))         
+				etat = true;   
+		}
+    }
+	else {
+		if(*registre_ & (1<<numeroPin_)) {
+			_delay_ms(10);
+			if(*registre_ & (1<<numeroPin_))         
+				etat = true;   
+		}
 	}
 	return etat;
 }

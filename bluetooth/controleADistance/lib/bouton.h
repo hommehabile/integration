@@ -3,7 +3,16 @@
 
 #include "constantes.h"
 
-bool etatBoutton(Ports port, uint8_t pin);
-bool antiRebond(uint8_t unPort, uint8_t laPin);
+class Bouton {
+public:
+	Bouton();
+	Bouton(volatile uint8_t *registre, uint8_t numeroPin, bool inverse = false);
+	bool etatBouton();
+
+private:
+	volatile uint8_t *registre_;
+	uint8_t numeroPin_;
+	bool inverse_;
+};
 
 #endif

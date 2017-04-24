@@ -3,14 +3,10 @@
 
 #include "constantes.h"
 
-class Del 
-{
+class Del {
 public:
-	Del();				// Constructeur par default
-		
-	Del(volatile uint8_t *port, uint8_t numeroPortUn, uint8_t numeroPortDeux); // Constructeur par parametre
-		
-	~Del();				// Destructeur
+	Del();
+	Del(volatile uint8_t *port, uint8_t numeroPortUn, uint8_t numeroPortDeux);
 		
 	// Methodes pour afficher une couleur
 	void afficherVert();
@@ -22,9 +18,7 @@ public:
 		
 	// Methode d'acces
 	uint8_t obtenirEtat();
-	volatile uint8_t* obtenirLettrePort();
-	uint8_t obtenirNumeroPortUn();
-	uint8_t obtenirNumeroPortDeux();
+	volatile uint8_t* obtenirPort();
 		
 private:
 	volatile uint8_t *port_;

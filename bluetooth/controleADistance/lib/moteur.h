@@ -11,24 +11,22 @@ class Moteur {
 public:
     Moteur();
     Moteur(Cote cote);
-    ~Moteur();
 
-    void demarrerMoteur(uint8_t vitesse);
+    void demarrerMoteur(const uint8_t pourcentage) const;
     void arreterMoteur();
-    void setDirection(Direction dir);
-    void setVitesse(uint8_t vitesse);
     
-    Direction getDirection() const;
-    Cote getCote() const;
+    void modifierDirection(const Direction dir);
+    void modifierVitesse(const uint8_t pourcentage) const;
     
+    Direction obtenirDirection() const;
+    Cote obtenirCote() const;
 private:
     Direction direction_;
     Cote cote_;
     Port port_;
     bool moteurEstDemarre_;
 
-    void initialisationRegistres();
-    void ajustementPWM(uint8_t vitesse);
+    void initialisationRegistres() const ;
 };
 
 #endif

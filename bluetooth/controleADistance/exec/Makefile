@@ -29,7 +29,7 @@ PROJECTNAME=projet
 # Fichiers sources
 # (Listez tous les fichiers a compiler, ex: 'tp1.c, tp2.cpp'):
 # Utilisez le suffixe .cpp pour les fichiers C++
-PRJSRC= Robot.cpp Parcours.cpp bluetooth.cpp Instruction.cpp GestionnaireInstructions.cpp main.cpp
+PRJSRC= uart.cpp bluetooth.cpp Instruction.cpp GestionnaireInstructions.cpp Robot.cpp Parcours.cpp main.cpp
 #***METTRE TOUS NOS MANAGERS ICI***
 
 # Inclusions additionnels (ex: -I/path/to/mydir)

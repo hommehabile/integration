@@ -16,17 +16,17 @@ void GestionnaireInstructions::executer() {
                     delai_ms(uneInstruction.getOperande() * 25);       //25 fois la valeur de l'operande
                     break;
                 case dal:
-                    PORTB = 0x01;
                     robot_.allumerDel(uneInstruction.getOperande());
                     break;
                 case det:
                     robot_.fermerDel(uneInstruction.getOperande()); 
                     break;
                 case sgo: 
-                    
+                    robot_.debutSon();
+                    robot_.modifierFrequence(uneInstruction.getOperande());
                     break;
                 case sar: 
-                    
+                    robot_.arretSon();
                     break;
                 case mar:
                 case 0x61:

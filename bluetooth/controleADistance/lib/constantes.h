@@ -8,11 +8,9 @@
 #include <util/delay.h>
 #include <avr/interrupt.h>
 #include <util/twi.h>
+#include "minuterie.h"
 
-//ports
-enum Ports {A, B, C, D};
-
-enum Couleur {ROUGE_PARCOURS, VERT_PARCOURS};
+enum CouleurParcours {PARCOURS_VERT = 0,PARCOURS_ROUGE = 1};
 
 //del
 #define ETEINTE 0
@@ -25,5 +23,14 @@ enum Couleur {ROUGE_PARCOURS, VERT_PARCOURS};
 #define RECULER 0
 #define ROUE_DROITE 0x80	//PD7
 #define ROUE_GAUCHE 0x40	//PD6
+
+/*
+ ENUMERATION DES ENUMS DANS LES DIFFERENTS FICHIERS
+ moteur.h
+    - enum Direction {AVANT, ARRIERE, ARRET};
+    - enum Cote {DROITE, GAUCHE};
+    - enum Port {A1, B1};
+
+*/
 
 #endif

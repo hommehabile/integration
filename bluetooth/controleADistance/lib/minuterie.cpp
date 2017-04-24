@@ -1,5 +1,18 @@
 #include "minuterie.h"
 
+volatile bool minuterieExpiree = false;
+volatile uint16_t nombreIterations = 0;
+
+ISR(TIMER2_COMPA_vect) {
+	PORTB = 0x02;
+	if(nombreIterations>0)
+		nombreIterations--;
+	else {
+		minuterieExpiree = true;
+		TCCR2B &= ~(1 << CS21) & ~(1 << CS22);
+	}
+}
+
 /***************************************************************************
  * Fonction              : Minuterie()
  * Description           : Constructeur par defaut. Ne fait rien ici.
@@ -9,7 +22,8 @@
  * 		  Aucun.
  ***************************************************************************/
 Minuterie::Minuterie() {
-	minuterieExpiree_ = false;
+	minuterieExpiree = false;
+	nombreIterations = 0;
 }
 
 /***************************************************************************
@@ -26,50 +40,51 @@ Minuterie::Minuterie() {
  * 		  Aucun.
  ***************************************************************************/
 void Minuterie::partirMinuterie(uint16_t duree) {
-    minuterieExpiree_ = false;
+    minuterieExpiree = false;
+    nombreIterations = duree; //nombre de millisecondes
 
 	// TCCR0A - Timer/Counter Control Register A.
-	// Bit 7 - COM0A1 : Compare Match Output A Mode.
+	// Bit 7 - COM2A1 : Compare Match Output A Mode.
+	//					Voir tableau p.1055 de la documentation.
+	// Bit 6 - COM2A0 : Compare Match Output A Mode.
 	//					Voir tableau p.101 de la documentation.
-	// Bit 6 - COM0A0 : Compare Match Output A Mode.
-	//					Voir tableau p.101 de la documentation.
-	// Bit 5 - COM0B1 : Compare Match Output B Mode.
+	// Bit 5 - COM2B1 : Compare Match Output B Mode.
 	//					Voir tableau p.102 de la documentation.
-	// Bit 4 - COM0B0 : Compare Match Output B Mode.
+	// Bit 4 - COM2B0 : Compare Match Output B Mode.
 	//					Voir tableau p.102 de la documentation.
 	// Bit 3 - Reserved.
 	// Bit 2 - Reserved.
-	// Bit 1 - WGM01  : Waveform Generation Mode.
+	// Bit 1 - WGM21  : Waveform Generation Mode.
 	//					Voir tableau p.103 de la documentation.
-	// Bit 0 - WGM00  : Waveform Generation Mode.
+	// Bit 0 - WGM20  : Waveform Generation Mode.
 	//					Voir tableau p.103 de la documentation.
-    TCCR0A |= (1 << COM0A1) | (1 << WGM01); //Mode CTC timer 0 & Clear OCR0A on Compare Match.
+    TCCR2A |= (1 << WGM21); //Mode CTC timer 2
 
 	// TCCR0B - Timer/Counter Control Register B.
-	// Bit 7 - F0C0A : Force Output Compare Match A.
-	// Bit 6 - FOC0B : Force Output Compare Match B.
+	// Bit 7 - F0C2A : Force Output Compare Match A.
+	// Bit 6 - F0C2B : Force Output Compare Match B.
 	// Bit 5 - Reserved.
 	// Bit 4 - Reserved.
-	// Bit 3 - WGM02 : Waveforme Generation Mode.
+	// Bit 3 - WGM22 : Waveforme Generation Mode.
 	//				   Voir tableau p.103 de la documentation.
-	// Bit 2 - CS02  : Clock Select.
+	// Bit 2 - CS22  : Clock Select.
 	//				   Voir tableau p.104 de la documentation.
-	// Bit 1 - CS01  : Clock Select.
+	// Bit 1 - CS21  : Clock Select.
 	//				   Voir tableau p.104 de la documentation.
-	// Bit 0 - CS00  : Clock Select.
+	// Bit 0 - CS20  : Clock Select.
 	//				   Voir tableau p.104 de la documentation.
-    TCCR0B |= (1 << CS00) | (1 << CS02); 	//CS00 & CS02 permettent un clock/1024.
+    TCCR2B |= (1 << CS21) | (1 << CS22); 	//prescaler de 32
 	
     // TCNT0 - Timer/Counter Register.
-	TCNT0 = 0;      	
+	TCNT2 = 0;      	
 
 	// OCR0A - Output Compare Register A.
-    OCR0A = duree;  	
+    OCR2A = 250; //l'interruption output compare match se fera a chaque milliseconde
 	
 	// TIMSK0 - Timer/Counter Interrupt Mask Register.
 	//			Bit 7:3 - Reserved.
-	//			OCIE0A  - Timer/Counter Output Compare Match A Interrupt Enable.
-    TIMSK0 |= (1 << OCIE0A);    	// Enable interrupt
+	//			OCIE2A  - Timer/Counter Output Compare Match A Interrupt Enable.
+    TIMSK2 |= (1 << OCIE2A);    	// Enable interrupt
 }
 
 /***************************************************************************
@@ -83,8 +98,8 @@ void Minuterie::partirMinuterie(uint16_t duree) {
  * Parametres de sortie  :     
  * 		  Aucun.
  ***************************************************************************/
-void Minuterie::arreterMinuterie() {
-	TIMSK0 &= ~(1 << OCIE0A);    		// Disable interrupt
+void Minuterie::arreterMinuterie() const{
+	TCCR2B &= ~(1 << CS21) & ~(1 << CS22);    		// Disable clock
 }
 
 /***************************************************************************
@@ -96,21 +111,10 @@ void Minuterie::arreterMinuterie() {
  * Parametres de sortie  :     
  * 		- expiree (bool) : Valeur que l'on veut pour l'attribut.
  ***************************************************************************/
-bool Minuterie::getMinuterieExpiree() {
-	return minuterieExpiree_;
-}
-
-/***************************************************************************
- * Fonction              : setMinuterieExpiree
- * Description           : Methode qui permet de modifier la valeur de
- *						   l'attribut minuterieExpiree_.
- * Parametres d'entree   : 
- * 		- expiree (bool) : Nouvelle valeur que l'on veut pour l'attribut.
- * Parametres de sortie  :     
- * 		  Aucun.
- ***************************************************************************/
-void Minuterie::setMinuterieExpiree(bool expiree) {
-	minuterieExpiree_ = expiree;
+bool Minuterie::obtenirMinuterieExpiree() const {
+	if(minuterieExpiree)
+		arreterMinuterie();
+	return (bool)minuterieExpiree;
 }
 
 /***************************************************************************
