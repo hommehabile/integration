@@ -23,7 +23,8 @@ void GestionnaireInstructions::executer() {
                     break;
                 case sgo: 
                     robot_.debutSon();
-                    robot_.modifierFrequence(uneInstruction.getOperande());
+                    //robot_.modifierFrequence(uneInstruction.getOperande());
+                    robot_.modifierFrequence(45);
                     break;
                 case sar: 
                     robot_.arretSon();
