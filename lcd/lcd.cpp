@@ -26,7 +26,6 @@ void Lcd::initialisation() {
     _delay_us(DELAY_US);
     sendCommand(CMD_8BITS_INTERFACE);   // 8-bit mode again.
     _delay_us(DELAY_US);
-    //clearBasicGraphics();
     sendCommand(CMD_ENTRY_MODE_RIGHT);  // Cursor moves right, no display shift.
     _delay_us(DELAY_US);
     sendCommand(CMD_RETURN_HOME);       // Returns to home. Cursor moves to starting point.
@@ -63,16 +62,41 @@ void Lcd::writeString(uint8_t string[], uint8_t size) {
 }
 
 void Lcd::writeHex(uint8_t hex) {
-	clearBasicGraphics();
+	//Ecrit un octect sous la forme 0xHH
+	sendCommand(CMD_BASIC_INSTRUCTION);
     sendData('0');
     sendData('x');
-    for(uint8_t i=0; i<8; i++) {
-    	sendData(0x30 | ((hex >> (7-i)) & 0x01));
+    for(char i=1; i>=0; i--) {
+    	uint8_t half = (hex >> (4*i)) & 0x0f;
+    	switch(half) {
+    		case 10:
+    			sendData('A');
+    			break;
+    		case 11:
+    			sendData('B');
+    			break;
+    		case 12:
+    			sendData('C');
+    			break;
+    		case 13:
+    			sendData('D');
+    			break;
+    		case 14:
+    			sendData('E');
+    			break;
+    		case 15:
+    			sendData('F');
+    			break;
+    		default:
+    			sendData(half);
+    			break;
+    	}
     }
 }
 
 void Lcd::writeByte(uint8_t byte) {
-	clearBasicGraphics();
+	//Ecrit un octect sous la forme 0bXXXXXXXX
+	sendCommand(CMD_BASIC_INSTRUCTION);
     sendData('0');
     sendData('b');
     for(uint8_t i=0; i<8; i++) {
@@ -160,7 +184,6 @@ uint8_t Lcd::readBusyFlag() {
 	    bf = LCD_BUS_IN;
 	    _delay_ms(DELAY_MS);
 	    EN(0);
-	    
 	}
 	else {
 		bf = 0x00; //read not supported in serial mode
